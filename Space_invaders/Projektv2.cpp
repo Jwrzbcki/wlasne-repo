@@ -10,7 +10,7 @@
 
 import EnemyMod;
 
-enum directions { right, down, left, up };
+//enum directions { right, down, left, up };
 int main()
 {
     unsigned int wysokosc = 640;
@@ -28,8 +28,7 @@ int main()
         std::cerr << "Error, nie zaladowany sprite" << std::endl;
         return -1;
     }
-    sf::Sprite Ship_sprite(ship_texture), Background_sprite(background_texture), Bullet_sprite(bullet_texture), Enemy0_sprite(enemy0_texture),
-         Enemy1_sprite(enemy1_texture), Enemy2_sprite(enemy2_texture);
+    sf::Sprite Ship_sprite(ship_texture), Background_sprite(background_texture), Bullet_sprite(bullet_texture), Enemy0_sprite(enemy0_texture), Enemy1_sprite(enemy1_texture), Enemy2_sprite(enemy2_texture);
     
                                                                                                                                   
 
@@ -94,6 +93,9 @@ int main()
         //render
         window->clear();
 
+
+
+
         //drawing
 
         window->draw(Background_sprite);
@@ -102,10 +104,16 @@ int main()
             Bullet_move(window, Bullet_sprite, BT);
         }
         else Bullet_sprite.setPosition({ szerokosc-10.0f,wysokosc-10.0f });
+        
         window->draw(Ship_sprite);
-        //if (!dead)window->draw(Enemy0_sprite);                              //jesli przeciwnik nie jest martwy to wyswietlic, jak jest to musze go usunac
+        
         Enemy_spawn(window, Enemy0_sprite, Enemy1_sprite, Enemy2_sprite, Bullet_sprite);  //proba przekazania zadania do modulu przeciwnikow
        
+
+
+
+
+
         //display update
         window->display();
     }
