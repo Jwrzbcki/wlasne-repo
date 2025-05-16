@@ -1,4 +1,5 @@
 ﻿
+
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -6,14 +7,18 @@
 #include <condition_variable>
 #include <string>
 #include <vector>
+#include <queue>
+#include <chrono>
+
 
 std::atomic<int> licznik{ 0 };
-std::atomic<int> licznik_bufor{ 0 };
 std::mutex mtx;
 
 void inkrementuj(int ile_razy) {
     for (int i=0; i < ile_razy; i++) licznik++;
 }
+
+std::atomic<int> licznik_bufor{ 0 };
 
 void zapisz_bufor(std::vector<std::string>& bufor) {
     
@@ -30,11 +35,56 @@ void zapisz_bufor(std::vector<std::string>& bufor) {
     }
 }
 
+std::mutex mtx_z3;
+std::condition_variable cv;
+std::queue<int> bufor;
+const int MAX_ROZMIAR = 5;
+bool koniec = false;
+
+void producent() {
+    
+    for (int i = 0; i < 10; ++i) {
+        std::unique_lock<std::mutex> lock(mtx_z3);
+        cv.wait(lock, [] { return bufor.size() < MAX_ROZMIAR; });
+        
+        bufor.push(i);
+        std::cout << "[Producent]: " << i;
+
+        lock.unlock();
+        cv.notify_one(); 
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    std::lock_guard<std::mutex> lock(mtx_z3);
+    koniec = true;
+    cv.notify_one();
+}
+
+void konsument() {
+    while (true) {
+        std::unique_lock<std::mutex> lock(mtx_z3);
+        cv.wait(lock, [] { return !bufor.empty() || koniec; });
+
+        if (!bufor.empty()) {
+            int wartosc = bufor.front();
+            bufor.pop();
+            std::cout << "\t\t\t\t[Konsument]: " << wartosc << "\n";
+
+            lock.unlock();
+            cv.notify_one(); 
+        }
+        else if (koniec) {
+            break;
+        }
+    }
+}
+
 int main()
 {
+    auto start = std::chrono::high_resolution_clock::now();
     
     srand(time(0));
-
+    
     //ZAD 1
     int N_1 = rand() % 100;
     int N_2 = rand() % 100;
@@ -46,7 +96,6 @@ int main()
     std::cout << "Zinkrementowano licznik " << licznik << " razy\n";
     
     //ZAD 2
-    
     std::vector<std::string> bufor;
     std::thread watek1(zapisz_bufor, std::ref(bufor));
     std::thread watek2(zapisz_bufor, std::ref(bufor));
@@ -58,5 +107,19 @@ int main()
     for (std::string var : bufor) {
         std::cout << var << std::endl;
     }
+    std::cout << "\nLaczna liczba wartosci w buforze: " << bufor.size() << std::endl;
     
+    //ZAD 3
+    
+    std::thread prodT(producent);
+    std::thread konsT(konsument);
+
+    prodT.join();
+    konsT.join();
+
+    std::cout << "Gotowe.\n";
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto dlugosc_wykonania = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "\nProgram zajal: " << dlugosc_wykonania << std::endl;
 }
