@@ -140,7 +140,10 @@
   <ItemGroup>
     <ClCompile Include="Bullet.ixx" />
     <ClCompile Include="Enemy.ixx" />
+    <ClCompile Include="EnemyShot.ixx" />
+    <ClCompile Include="Points.ixx" />
     <ClCompile Include="Projektv2.cpp" />
+    <ClCompile Include="Sciana.ixx" />
     <ClCompile Include="Ship.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
